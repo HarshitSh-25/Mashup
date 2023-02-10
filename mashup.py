@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import sys
 import os
-from youtube_channel_videos_scraper_bot import *
 import youtube_dl # client to download from many multimedia portals
 import glob # directory operations
 import os # interface to os-provided info on files
