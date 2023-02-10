@@ -10,7 +10,25 @@ import os # interface to os-provided info on files
 import sys # interface to command line
 from pydub import AudioSegment # only audio operations
 from pytube import YouTube
+import zipfile
+from youtubesearchpython import VideosSearch
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
 
+def download_audio(yt_url):
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
+    }
+    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([yt_url])
 
 app=Flask(__name__)
 
@@ -41,7 +59,8 @@ def main(arg1,arg2,arg3,arg4):
     name=arg1
     videos=int(arg2)
     duration=arg3
-    output=arg4
+    email=arg4
+    output="final.mp3"
     # name="diljit dosanjh
     # videos=3
     # duration=3
@@ -55,23 +74,20 @@ def main(arg1,arg2,arg3,arg4):
     print(duration)
     print(output)
     print(sys.argv[0])
-    name=func(name)
-    link="https://www.youtube.com/"+name+"/videos"
-    youtube.open(link)
-    response=youtube.channel_videos()
-    data=response['body']   
-    all_data=[]
-    all_data.extend(data)
-    print(all_data[1])
+
+    videosSearch = VideosSearch(name, limit = videos)
     links=[]
     for i in range(0,videos):
-        links.append(("https://www.youtube.com"+all_data[i]['Video_Link']))
-    print(links)
+        links.append(videosSearch.result()["result"][i]["link"])
+
+
     for i in range(0,videos):
         yt_url = links[i]
         download_audio(yt_url)
         initial = "00:00"
         final = "00:"
+        if(int(duration) < 10):
+            final+="0"
         final+=duration
         filename = newest_mp3_filename()
         trimmed_file = get_trimmed(filename, initial, final)
@@ -86,8 +102,30 @@ def main(arg1,arg2,arg3,arg4):
         os.remove(file)
         audio0=audio0.append(audio)
     audio0.export(output,format="mp3")
-    temp.export("final.wav", format="wav")
     os.remove("audio0.mp3")
+    zip = zipfile.ZipFile("final_z"+".zip", "w", zipfile.ZIP_DEFLATED)
+    zip.write(output)
+    zip.close()
+
+    fromaddr = "hsharma_be20@thapar.edu"
+    toaddr = email
+    msg = MIMEMultipart()
+    msg['From'] = fromaddr
+    msg['To'] = toaddr
+    msg['Subject'] = "102003653_HarshitSharma_Mashup"
+    filename = "final_z.zip"
+    attachment = open("final_z.zip", "rb")
+    p = MIMEBase('application',  'octet-stream')
+    p.set_payload((attachment).read())
+    encoders.encode_base64(p)
+    p.add_header('Content-Disposition', "attachment; filename= %s" % filename)
+    msg.attach(p)
+    s = smtplib.SMTP('smtp.gmail.com', 587)
+    s.starttls()
+    s.login(fromaddr, "Theharshit25")
+    text = msg.as_string()
+    s.sendmail(fromaddr, toaddr, text)
+    s.quit()
 
 
 def newest_mp3_filename():
@@ -136,16 +174,6 @@ def download_audio(yt_url):
     }
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         ydl.download([yt_url])
-
-
-def func(name):
-    spl=name.split(" ")
-    channel=""
-    for i in range(0,len(spl)):
-        channel+=spl[i]
-    channel="@"+channel
-    return channel
-
 
 
 if __name__=='__main__':
