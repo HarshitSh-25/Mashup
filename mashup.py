@@ -42,7 +42,7 @@ def getvalue():
     number=request.form['number']
     duration=request.form['duration']
     email=request.form['email']
-    print(name+"---"+email)
+    # print(name+"---"+email)
     main(name, number, duration, email)
     return "<h1><center>Thanks</center></h1>"
 
@@ -68,11 +68,11 @@ def main(arg1,arg2,arg3,arg4):
     # videos=int(sys.argv[2])
     # duration=sys.argv[3]
     # output=sys.argv[4]
-    print(name)
-    print(videos)
-    print(duration)
-    print(output)
-    print(sys.argv[0])
+    # print(name)
+    # print(videos)
+    # print(duration)
+    # print(output)
+    # print(sys.argv[0])
 
     videosSearch = VideosSearch(name, limit = videos)
     links=[]
